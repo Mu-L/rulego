@@ -19,6 +19,7 @@ package endpoint
 
 import (
 	"context"
+	"net/http"
 	"net/textproto"
 	"sync"
 
@@ -113,6 +114,13 @@ type Message interface {
 	SetError(err error)
 	//GetError get error
 	GetError() error
+}
+
+type HeaderInterface interface {
+	AddHeader(key, value string)
+	SetHeader(key, value string)
+	DelHeader(key string)
+	GetMetadata() *types.Metadata
 }
 
 // Exchange is a structure containing both inbound and outbound messages.
@@ -258,4 +266,17 @@ type Pool interface {
 	Range(f func(key, value any) bool)
 	// Factory returns the factory used to create endpoint instances.
 	Factory() Factory
+}
+
+type HttpEndpoint interface {
+	Endpoint
+	GET(routers ...Router) HttpEndpoint
+	HEAD(routers ...Router) HttpEndpoint
+	OPTIONS(routers ...Router) HttpEndpoint
+	POST(routers ...Router) HttpEndpoint
+	PUT(routers ...Router) HttpEndpoint
+	PATCH(routers ...Router) HttpEndpoint
+	DELETE(routers ...Router) HttpEndpoint
+	GlobalOPTIONS(handler http.Handler) HttpEndpoint
+	RegisterStaticFiles(resourceMapping string) HttpEndpoint
 }

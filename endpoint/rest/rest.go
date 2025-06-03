@@ -68,6 +68,9 @@ const Type = types.EndpointTypePrefix + "http"
 // Endpoint 别名
 type Endpoint = Rest
 
+var _ endpoint.Endpoint = (*Endpoint)(nil)
+var _ endpoint.HttpEndpoint = (*Endpoint)(nil)
+
 // RequestMessage http请求消息
 type RequestMessage struct {
 	request  *http.Request
@@ -244,6 +247,10 @@ type Config struct {
 	CertKeyFile string
 	//是否允许跨域
 	AllowCors bool
+	// HTTP服务器配置
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 // Rest 接收端端点
@@ -267,7 +274,10 @@ func (rest *Rest) Type() string {
 func (rest *Rest) New() types.Node {
 	return &Rest{
 		Config: Config{
-			Server: ":6333",
+			Server:       ":6333",
+			ReadTimeout:  30 * time.Second,
+			WriteTimeout: 30 * time.Second,
+			IdleTimeout:  120 * time.Second,
 		},
 	}
 }
@@ -476,43 +486,73 @@ func (rest *Rest) addRouter(method string, routers ...endpoint.Router) error {
 	return nil
 }
 
-func (rest *Rest) GET(routers ...endpoint.Router) *Rest {
+func (rest *Rest) GET(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodGet, routers...)
 	return rest
 }
 
-func (rest *Rest) HEAD(routers ...endpoint.Router) *Rest {
+func (rest *Rest) HEAD(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodHead, routers...)
 	return rest
 }
 
-func (rest *Rest) OPTIONS(routers ...endpoint.Router) *Rest {
+func (rest *Rest) OPTIONS(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodOptions, routers...)
 	return rest
 }
 
-func (rest *Rest) POST(routers ...endpoint.Router) *Rest {
+func (rest *Rest) POST(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodPost, routers...)
 	return rest
 }
 
-func (rest *Rest) PUT(routers ...endpoint.Router) *Rest {
+func (rest *Rest) PUT(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodPut, routers...)
 	return rest
 }
 
-func (rest *Rest) PATCH(routers ...endpoint.Router) *Rest {
+func (rest *Rest) PATCH(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodPatch, routers...)
 	return rest
 }
 
-func (rest *Rest) DELETE(routers ...endpoint.Router) *Rest {
+func (rest *Rest) DELETE(routers ...endpoint.Router) endpoint.HttpEndpoint {
 	rest.addRouter(http.MethodDelete, routers...)
 	return rest
 }
 
-func (rest *Rest) GlobalOPTIONS(handler http.Handler) *Rest {
+func (rest *Rest) GlobalOPTIONS(handler http.Handler) endpoint.HttpEndpoint {
 	rest.Router().GlobalOPTIONS = handler
+	return rest
+}
+
+func (rest *Rest) RegisterStaticFiles(resourceMapping string) endpoint.HttpEndpoint {
+	if resourceMapping != "" {
+		mapping := strings.Split(resourceMapping, ",")
+		for _, item := range mapping {
+			files := strings.Split(item, "=")
+			if len(files) == 2 {
+				urlPath := strings.TrimSpace(files[0])
+				localDir := strings.TrimSpace(files[1])
+
+				// 移除 /*filepath 后缀以获取基础路径
+				basePath := urlPath
+				if strings.HasSuffix(urlPath, "/*filepath") {
+					basePath = urlPath[:len(urlPath)-10]
+				}
+
+				// 确保路径以 /{filepath:*} 结尾，这是 fasthttp router 的要求
+				if !strings.HasSuffix(urlPath, "/*filepath") {
+					if strings.HasSuffix(basePath, "/") {
+						urlPath = basePath + "*filepath"
+					} else {
+						urlPath = basePath + "/*filepath"
+					}
+				}
+				rest.Router().ServeFiles(strings.TrimSpace(urlPath), http.Dir(strings.TrimSpace(localDir)))
+			}
+		}
+	}
 	return rest
 }
 
@@ -648,7 +688,13 @@ func (rest *Rest) startServer() error {
 		return nil
 	}
 	var err error
-	rest.Server = &http.Server{Addr: rest.Config.Server, Handler: rest.router}
+	rest.Server = &http.Server{
+		Addr:         rest.Config.Server,
+		Handler:      rest.router,
+		ReadTimeout:  rest.Config.ReadTimeout,
+		WriteTimeout: rest.Config.WriteTimeout,
+		IdleTimeout:  rest.Config.IdleTimeout,
+	}
 	ln, err := rest.Listen()
 	if err != nil {
 		return err

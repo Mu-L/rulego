@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"examples/server/config"
 	"examples/server/config/logger"
 	"examples/server/internal/controller"
@@ -31,7 +32,7 @@ const (
 )
 
 // NewRestServe rest服务 接收端点
-func NewRestServe(config config.Config) *rest.Endpoint {
+func NewRestServe(config config.Config) (endpointApi.HttpEndpoint, error) {
 	//初始化日志
 	addr := config.Server
 	if strings.HasPrefix(addr, ":") {
@@ -40,16 +41,39 @@ func NewRestServe(config config.Config) *rest.Endpoint {
 		logger.Logger.Println("RuleGo-Server now running at http://" + addr)
 	}
 
-	restEndpoint := &rest.Endpoint{
-		Config: rest.Config{
+	//restEndpoint := &rest.Endpoint{
+	//	Config: rest.Config{
+	//		Server:    addr,
+	//		AllowCors: true,
+	//	},
+	//	RuleConfig: rulego.NewConfig(types.WithDefaultPool(), types.WithLogger(logger.Logger)),
+	//}
+
+	rulegoConfig := rulego.NewConfig(types.WithDefaultPool(), types.WithLogger(logger.Logger))
+	ep, err := endpoint.Registry.New(
+		rest.Type,
+		rulegoConfig,
+		rest.Config{
 			Server:    addr,
 			AllowCors: true,
 		},
-		RuleConfig: rulego.NewConfig(types.WithDefaultPool(), types.WithLogger(logger.Logger)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	var restEndpoint endpointApi.HttpEndpoint
+	if ep, ok := ep.(endpointApi.HttpEndpoint); !ok {
+		return nil, errors.New("is not HttpEndpoint type error")
+	} else {
+		restEndpoint = ep
 	}
 	//添加全局拦截器
 	restEndpoint.AddInterceptors(func(router endpointApi.Router, exchange *endpointApi.Exchange) bool {
-		exchange.Out.Headers().Set(ContentTypeKey, JsonContextType)
+		if out, ok := exchange.Out.(endpointApi.HeaderInterface); ok {
+			out.AddHeader(ContentTypeKey, JsonContextType)
+		} else {
+			exchange.Out.Headers().Set(ContentTypeKey, JsonContextType)
+		}
 		return true
 	})
 	//重定向UI界面
@@ -125,18 +149,12 @@ func NewRestServe(config config.Config) *rest.Endpoint {
 	if config.ShareHttpServer {
 		_, _ = node_pool.DefaultNodePool.AddNode(restEndpoint)
 	}
-	return restEndpoint
+	return restEndpoint, nil
 }
 
 // LoadServeFiles 加载静态文件映射
-func LoadServeFiles(c config.Config, restEndpoint *rest.Endpoint) {
+func LoadServeFiles(c config.Config, restEndpoint endpointApi.HttpEndpoint) {
 	if c.ResourceMapping != "" {
-		mapping := strings.Split(c.ResourceMapping, ",")
-		for _, item := range mapping {
-			files := strings.Split(item, "=")
-			if len(files) == 2 {
-				restEndpoint.Router().ServeFiles(strings.TrimSpace(files[0]), http.Dir(strings.TrimSpace(files[1])))
-			}
-		}
+		restEndpoint.RegisterStaticFiles(c.ResourceMapping)
 	}
 }

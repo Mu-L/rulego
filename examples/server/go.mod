@@ -9,12 +9,12 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/websocket v1.5.0
 	github.com/mark3labs/mcp-go v0.18.0
-	github.com/rulego/rulego v0.31.2-0.20250602041604-4449d58c5c83
-	github.com/rulego/rulego-components v0.29.2-0.20250519065506-b17f79c50c06
-	github.com/rulego/rulego-components-ai v0.29.1-0.20250429035651-489af3d5d273
-	github.com/rulego/rulego-components-ci v0.29.1-0.20250520161921-5c7755d5d47e
-	github.com/rulego/rulego-components-etl v0.29.0
-	github.com/rulego/rulego-components-iot v0.29.0
+	github.com/rulego/rulego v0.31.2-0.20250602155557-dd600e38f329
+	github.com/rulego/rulego-components v0.31.1-0.20250602160605-e53fdb2a251d
+	github.com/rulego/rulego-components-ai v0.31.1
+	github.com/rulego/rulego-components-ci v0.31.1-0.20250602161121-89f21f4c54fe
+	github.com/rulego/rulego-components-etl v0.29.1-0.20250602160310-2d30a072f03b
+	github.com/rulego/rulego-components-iot v0.29.1-0.20250602161433-0e056f4f3f0d
 	gopkg.in/ini.v1 v1.67.0
 )
 
@@ -30,6 +30,7 @@ require (
 	github.com/WuKongIM/WuKongIMGoProto v1.0.8 // indirect
 	github.com/WuKongIM/WuKongIMGoSDK v1.0.0 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/beanstalkd/go-beanstalk v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -54,6 +55,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.13.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/expr-lang/expr v1.17.2 // indirect
+	github.com/fasthttp/router v1.5.3 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/fullstorydev/grpcurl v1.9.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -88,7 +90,7 @@ require (
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
@@ -120,6 +122,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.2 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sashabaranov/go-openai v1.37.0 // indirect
+	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.5-0.20250517063057-34ac457e154c // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -132,6 +135,7 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/vadv/gopher-lua-libs v0.5.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.58.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
@@ -174,10 +178,10 @@ replace github.com/rulego/rulego => ../../../rulego
 
 replace github.com/rulego/rulego-components => ../../../rulego-components
 
-replace github.com/rulego/rulego-components-ai => ../../../rulego-components-ai
+//replace github.com/rulego/rulego-components-ai => ../../../rulego-components-ai
 
-replace github.com/rulego/rulego-components-ci => ../../../rulego-components-ci
+//replace github.com/rulego/rulego-components-ci => ../../../rulego-components-ci
 
-replace github.com/rulego/rulego-components-iot => ../../../rulego-components-iot
+//replace github.com/rulego/rulego-components-iot => ../../../rulego-components-iot
 
-replace github.com/rulego/rulego-components-etl => ../../../rulego-components-etl
+//replace github.com/rulego/rulego-components-etl => ../../../rulego-components-etl

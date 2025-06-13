@@ -424,13 +424,22 @@ func (e *BaseEndpoint) SetOnEvent(onEvent endpoint.OnEvent) {
 
 // AddInterceptors 添加全局拦截器
 func (e *BaseEndpoint) AddInterceptors(interceptors ...endpoint.Process) {
+	e.Lock()
+	defer e.Unlock()
 	e.interceptors = append(e.interceptors, interceptors...)
 }
 
 func (e *BaseEndpoint) DoProcess(baseCtx context.Context, router endpoint.Router, exchange *endpoint.Exchange) {
 	//创建上下文
 	ctx := e.createContext(baseCtx, router, exchange)
-	for _, item := range e.interceptors {
+
+	// 线程安全地获取拦截器副本
+	e.RLock()
+	interceptors := make([]endpoint.Process, len(e.interceptors))
+	copy(interceptors, e.interceptors)
+	e.RUnlock()
+
+	for _, item := range interceptors {
 		//执行全局拦截器
 		if !item(router, exchange) {
 			return
@@ -472,7 +481,10 @@ func (e *BaseEndpoint) CheckAndSetRouterId(router endpoint.Router) string {
 }
 
 func (e *BaseEndpoint) Destroy() {
+	e.Lock()
+	defer e.Unlock()
 	e.interceptors = nil
+	// Create a new map instead of clearing the existing one to avoid race conditions
 	e.RouterStorage = make(map[string]endpoint.Router)
 }
 
